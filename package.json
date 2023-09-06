@@ -1,0 +1,23 @@
+{
+  "name": "ub-trello",
+  "version": "1.0.0",
+  "description": "Custom Power-Up for Trello to alert PM's of devops info as devs work on a project.",
+  "main": "server.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HarrisonHutton/UB-CSE-Trello-Power-Up.git"
+  },
+  "keywords": [
+    "Trello",
+    "Power-Up"
+  ],
+  "author": "Harrison Hutton",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HarrisonHutton/UB-CSE-Trello-Power-Up/issues"
+  },
+  "homepage": "https://github.com/HarrisonHutton/UB-CSE-Trello-Power-Up#readme"
+}
