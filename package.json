@@ -2,6 +2,9 @@
   "name": "ub-trello",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "start": "bun --hot run server.ts"
+  },
   "devDependencies": {
     "bun-types": "latest"
   },
