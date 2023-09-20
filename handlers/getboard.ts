@@ -45,8 +45,12 @@ function handleRemoveLabelFromCard(json: any) {
     const translationKey = getTranslationKey(json);
     switch (translationKey) {
         case "action_remove_label_from_card":
-            console.log("in remove label");
-            if (getLabelText(json).toUpperCase().startsWith("SPRINT")) {
+            const labelText = getLabelText(json);
+            if (labelText.toUpperCase().startsWith("SPRINT")) {
+                /* Add a comment to the card, stating that a sprint label
+                 * was removed. */
+                const comment = `removed a sprint label: ${labelText}`;
+                addCommentToCard(getCardId(json), comment);
                 console.log(
                     json["action"]["date"],
                     "WARNING:", 
@@ -63,6 +67,10 @@ function handleRemoveLabelFromCard(json: any) {
 
 /* This should be moved somewhere more global later because this will
  * be useful for any webhook response, not just the getBoard webhook. */
+function getCardId(json: any): string {
+    return json["action"]["data"]["card"]["id"]
+}
+
 function getActionType(json: any): string {
     /* Every post request from the webhook will have an "action" field:
      * https://developer.atlassian.com/cloud/trello/guides/rest-api/webhooks/#example-webhook-response */
@@ -83,4 +91,26 @@ function getListAfter(json: any): string {
 
 function getLabelText(json: any): string {
     return json["action"]["display"]["entities"]["label"]["text"]
+}
+
+function addCommentToCard(cardId: string, comment: string) {
+    /* Bun's environment variables are stored in the Bun.env object. 
+     * They are accessed the same way as the usual process.env method. */
+    const queryParams = `?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}&text=${comment}`;
+    /* Make the POST request that adds a comment to the card. */
+    fetch(
+        `https://api.trello.com/1/cards/${cardId}/actions/comments` + queryParams, 
+        { 
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }
+    ).then( response => {
+        if (response.ok) {
+            console.log("Comment added to card #" + cardId);
+        } else {
+            console.log("Error adding comment to card #" + cardId);
+        }
+    })
 }
