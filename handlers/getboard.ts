@@ -10,10 +10,13 @@ export async function handleGetBoard(req: Request) {
         const actionType = getActionType(json);
         switch (actionType) {
             case "updateCard":
-                handleUpdateCard(json);
+                await handleUpdateCard(json);
                 break;
             case "removeLabelFromCard":
                 handleRemoveLabelFromCard(json);
+                break;
+            case "addLabelToCard":
+                handleAddLabelToCard(json);
                 break;
             default:
                 console.log("Action type not recognized: " + actionType);
@@ -34,6 +37,24 @@ function handleUpdateCard(json: any) {
                     "\nCard #:", json["action"]["data"]["card"]["idShort"],
                     "\nViolator:", json["action"]["memberCreator"]["fullName"],
                 )
+            }
+            checkUserStoryRequirements(json);
+            break;
+        default:
+            console.log("Translation key not recognized: " + translationKey);
+    }
+}
+
+function handleAddLabelToCard(json: any) {
+    const translationKey = getTranslationKey(json);
+    switch (translationKey) {
+        case "action_add_label_to_card":
+            const labelText = getLabelText(json);
+            if (labelText.toUpperCase().startsWith("SPRINT")) {
+                /* Add a comment to the card, stating that a sprint label
+                 * was added. */
+                const comment = `added a sprint label: ${labelText}`;
+                addCommentToCard(getCardId(json), comment);
             }
             break;
         default:
@@ -93,6 +114,27 @@ function getLabelText(json: any): string {
     return json["action"]["display"]["entities"]["label"]["text"]
 }
 
+async function getCardLabels(cardId: string): Promise<string[]> {
+    let labels: string[] = [];
+    await fetch(
+        `${Bun.env.TRELLO_API_URL}/cards/${cardId}?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}&fields=labels`,
+        {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }
+    ).then( response => {
+        response.json().then( json => {
+            console.log(json);
+            json["labels"].forEach( (label: any) => {
+                labels.push(label["name"]);
+            })
+        })
+    })
+    return labels;
+}
+
 function addCommentToCard(cardId: string, comment: string) {
     /* Bun's environment variables are stored in the Bun.env object. 
      * They are accessed the same way as the usual process.env method. */
@@ -113,4 +155,15 @@ function addCommentToCard(cardId: string, comment: string) {
             console.log("Error adding comment to card #" + cardId);
         }
     })
+}
+
+async function checkUserStoryRequirements(json: any) {
+    /* If the following are true:
+     * - card has a label "User Story"
+     * - card has been moved to Planned
+     * - card is not blocked by anything (tasks)
+     * then, log this as a warning. */
+    const cardId = getCardId(json);
+    const labels = await getCardLabels(cardId);
+    console.log(labels);
 }
