@@ -40,6 +40,7 @@ function handleUpdateCard(json: any) {
             }
             checkUserStoryRequirements(json);
             checkCloseCardRequirements(json);
+            verifyTaskIsBlocking(json);
             break;
         default:
             console.log("Translation key not recognized: " + translationKey);
@@ -125,6 +126,32 @@ function getLabelText(json: any): string {
 
 function getMemberCreatorUsername(json: any): string {
     return json["action"]["memberCreator"]["username"]
+}
+
+function getCardAttachments(cardId: string) {
+    const attachmentsPromise = fetch(
+        `${Bun.env.TRELLO_API_URL}/cards/${cardId}/attachments?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}`,
+        {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }
+    ).then( response => response.json() );
+    return attachmentsPromise;
+}
+
+function getCardLabels(cardId: string) {
+    const labelsPromise = fetch(
+        `${Bun.env.TRELLO_API_URL}/cards/${cardId}/labels?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}`,
+        {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }
+    ).then( response => response.json() );
+    return labelsPromise;
 }
 
 async function logPossibleIssue(cardId: string) {
@@ -239,4 +266,40 @@ function checkCloseCardRequirements(json: any) {
             }
         })
     }
+}
+
+async function verifyTaskIsBlocking(json: any) {
+    if (getListAfterText(json) !== "Planned") {
+        return;
+    }
+    const cardId = getCardId(json);
+    const labelsPromise = getCardLabels(cardId);
+    const isTaskPromise = labelsPromise.then( labels => {
+        let flag = false;
+        labels.forEach( (label: any) => {
+            if (label["name"].toUpperCase().startsWith("TASK")) {
+                flag = true;
+            }
+        });
+        return flag;
+    });
+    /* If the card is not a task, then we don't need to check if it is
+     * blocking anything. */
+    if (!(await isTaskPromise)) {
+        return;
+    }
+    /* Tasks must be blocking something by the time they are moved 
+     * to Planned. */
+    const attachmentsPromise = getCardAttachments(cardId);
+    attachmentsPromise.then( attachments => {
+        let flag: boolean = false;
+        attachments.forEach( (attachment: any) => {
+            if (attachment["name"].startsWith("Blocks")) {
+                flag = true;
+            }
+        })
+        if (!flag) {
+            console.log("WARNING: Card #" + cardId + " has a Task label and was moved to planned, but is not blocking anything.");
+        }
+    });
 }
