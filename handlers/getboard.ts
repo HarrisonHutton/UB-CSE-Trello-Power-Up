@@ -114,9 +114,8 @@ function getLabelText(json: any): string {
     return json["action"]["display"]["entities"]["label"]["text"]
 }
 
-async function getCardLabels(cardId: string): Promise<string[]> {
-    let labels: string[] = [];
-    await fetch(
+async function logPossibleIssue(cardId: string) {
+    let label_promise = fetch(
         `${Bun.env.TRELLO_API_URL}/cards/${cardId}?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}&fields=labels`,
         {
             method: "GET",
@@ -124,15 +123,21 @@ async function getCardLabels(cardId: string): Promise<string[]> {
                 'Content-Type': 'application/json'
             },
         }
-    ).then( response => {
-        response.json().then( json => {
+    ).then( response => response.json()
+    ).then( json => {
             console.log(json);
+            let flag: boolean = false;
             json["labels"].forEach( (label: any) => {
-                labels.push(label["name"]);
+                if (label["name"] === "User Story") {
+                    flag = true;
+                }
             })
-        })
-    })
-    return labels;
+            return flag;
+        }
+    );
+    if (await label_promise) {
+        console.log("Card #" + cardId + " has a User Story label and was moved to planned.")
+    }
 }
 
 function addCommentToCard(cardId: string, comment: string) {
@@ -157,13 +162,12 @@ function addCommentToCard(cardId: string, comment: string) {
     })
 }
 
-async function checkUserStoryRequirements(json: any) {
+function checkUserStoryRequirements(json: any) {
+    const cardId = getCardId(json);
     /* If the following are true:
      * - card has a label "User Story"
      * - card has been moved to Planned
      * - card is not blocked by anything (tasks)
      * then, log this as a warning. */
-    const cardId = getCardId(json);
-    const labels = await getCardLabels(cardId);
-    console.log(labels);
+    logPossibleIssue(cardId);
 }
