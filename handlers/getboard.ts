@@ -202,7 +202,21 @@ function checkCloseCardRequirements(json: any) {
     if (!(getMemberCreatorUsername(json) in pmUsernames)) {
         /* If a non-PM tried to close the card, move the card back to where
          * it came from. */
-        const listBefore = getListBeforeText(json);
-
+        const listBeforeId = getListBeforeId(json);
+        fetch(
+            `${Bun.env.TRELLO_API_URL}/cards/${cardId}?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}&idList=${listBeforeId}`,
+            {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        ).then ( response => {
+            if (response.ok) {
+                console.log("Card #" + cardId + " moved back to " + getListBeforeText(json));
+            } else {
+                console.log("Error moving card #" + cardId + " back to " + getListBeforeText(json));
+            }
+        })
     }
 }
