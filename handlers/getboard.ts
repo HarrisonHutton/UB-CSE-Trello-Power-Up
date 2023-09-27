@@ -138,7 +138,6 @@ async function logPossibleIssue(cardId: string) {
         }
     ).then( response => response.json()
     ).then( json => {
-            console.log(json);
             let flag: boolean = false;
             json["labels"].forEach( (label: any) => {
                 if (label["name"] === "User Story") {
@@ -149,7 +148,28 @@ async function logPossibleIssue(cardId: string) {
         }
     );
     if (await label_promise) {
-        console.log("Card #" + cardId + " has a User Story label and was moved to planned.")
+        console.log("Card #" + cardId + " has a User Story label and was moved to planned.\nGetting its attachments now.");
+        fetch(
+            `${Bun.env.TRELLO_API_URL}/cards/${cardId}/attachments?key=${Bun.env.TRELLO_API_KEY}&token=${Bun.env.TRELLO_API_TOKEN}`,
+            {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }
+        ).then( response => response.json()
+        ).then( json => {
+                let flag: boolean = false;
+                json.forEach( (attachment: any) => {
+                    if (attachment["name"].startsWith("Is blocked by")) {
+                        flag = true;
+                    }
+                })
+                if (!flag) {
+                    console.log("WARNING: Card #" + cardId + " has a User Story label and was moved to planned, but is not blocked by anything.");
+                }
+            }
+        );
     }
 }
 
