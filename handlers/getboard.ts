@@ -107,8 +107,16 @@ function getListBeforeText(json: any): string {
     return json["action"]["display"]["entities"]["listBefore"]["text"]
 }
 
+function getListBeforeId(json: any): string {
+    return json["action"]["display"]["entities"]["listBefore"]["id"]
+}
+
 function getListAfterText(json: any): string {
     return json["action"]["display"]["entities"]["listAfter"]["text"]
+}
+
+function getListAfterId(json: any): string {
+    return json["action"]["display"]["entities"]["listAfter"]["id"]
 }
 
 function getLabelText(json: any): string {
