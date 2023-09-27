@@ -29,7 +29,7 @@ function handleUpdateCard(json: any) {
     const translationKey = getTranslationKey(json);
     switch (translationKey) {
         case "action_move_card_from_list_to_list":
-            if (getListAfter(json) === "Completed" && getListBefore(json) !== "Testing") {
+            if (getListAfterText(json) === "Completed" && getListBeforeText(json) !== "Testing") {
                 console.log(
                     json["action"]["date"],
                     "WARNING:", 
@@ -39,6 +39,7 @@ function handleUpdateCard(json: any) {
                 )
             }
             checkUserStoryRequirements(json);
+            checkCloseCardRequirements(json);
             break;
         default:
             console.log("Translation key not recognized: " + translationKey);
@@ -102,16 +103,20 @@ function getTranslationKey(json: any): string {
     return json["action"]["display"]["translationKey"]
 }
 
-function getListBefore(json: any): string {
+function getListBeforeText(json: any): string {
     return json["action"]["display"]["entities"]["listBefore"]["text"]
 }
 
-function getListAfter(json: any): string {
+function getListAfterText(json: any): string {
     return json["action"]["display"]["entities"]["listAfter"]["text"]
 }
 
 function getLabelText(json: any): string {
     return json["action"]["display"]["entities"]["label"]["text"]
+}
+
+function getMemberCreatorUsername(json: any): string {
+    return json["action"]["memberCreator"]["username"]
 }
 
 async function logPossibleIssue(cardId: string) {
@@ -163,6 +168,9 @@ function addCommentToCard(cardId: string, comment: string) {
 }
 
 function checkUserStoryRequirements(json: any) {
+    if (getListAfterText(json) !== "Planned") {
+        return;
+    }
     const cardId = getCardId(json);
     /* If the following are true:
      * - card has a label "User Story"
@@ -170,4 +178,23 @@ function checkUserStoryRequirements(json: any) {
      * - card is not blocked by anything (tasks)
      * then, log this as a warning. */
     logPossibleIssue(cardId);
+}
+
+/* Temporary solution for storing PM usernames. */
+const pmUsernames = [
+    "harrisonhutton1"
+]
+
+function checkCloseCardRequirements(json: any) {
+    if (getListAfterText(json) !== "Closed") {
+        return;
+    }
+    const cardId = getCardId(json);
+    /* Only PMs can close cards. */
+    if (!(getMemberCreatorUsername(json) in pmUsernames)) {
+        /* If a non-PM tried to close the card, move the card back to where
+         * it came from. */
+        const listBefore = getListBeforeText(json);
+
+    }
 }
