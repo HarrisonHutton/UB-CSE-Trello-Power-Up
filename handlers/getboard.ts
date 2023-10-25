@@ -1,3 +1,5 @@
+import { sendIssue, IssueData } from "../pmtool/sendissue";
+
 export async function handleGetBoard(req: Request) {
     const stream = req.body;
 
@@ -37,6 +39,13 @@ function handleUpdateCard(json: any) {
                     "\nCard #:", json["action"]["data"]["card"]["idShort"],
                     "\nViolator:", json["action"]["memberCreator"]["fullName"],
                 )
+                const issueData: IssueData = {
+                    issueType: "Card moved to Completed without going through testing first.",
+                    trelloUsername: json["action"]["memberCreator"]["username"],
+                    shortCardNumber: json["action"]["data"]["card"]["idShort"],
+                    boardShortUrl: json["action"]["data"]["board"]["shortUrl"],
+                }
+                sendIssue(issueData);
             }
             checkUserStoryRequirements(json);
             checkCloseCardRequirements(json);
