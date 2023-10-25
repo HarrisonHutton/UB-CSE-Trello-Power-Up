@@ -1,7 +1,7 @@
 export type IssueData = {
-    issueType: string,
+    action: string,
     trelloUsername: string,
-    shortCardNumber: number,
+    shortCardNumber: string,
     boardShortUrl: string,
 }
 
