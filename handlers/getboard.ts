@@ -1,4 +1,5 @@
 import { sendIssue, IssueData } from "../pmtool/sendissue";
+import { handleEnablePlugin } from "../actions/enable-plugin";
 
 export async function handleGetBoard(req: Request) {
     const stream = req.body;
@@ -19,6 +20,9 @@ export async function handleGetBoard(req: Request) {
                 break;
             case "addLabelToCard":
                 handleAddLabelToCard(json);
+                break;
+            case "enablePlugin":
+                handleEnablePlugin(json);
                 break;
             default:
                 console.log("Action type not recognized: " + actionType);
