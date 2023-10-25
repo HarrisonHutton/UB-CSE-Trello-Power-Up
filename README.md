@@ -1,4 +1,4 @@
-# ub-trello
+# Big Brother Trello Power-Up
 
 To install dependencies:
 
