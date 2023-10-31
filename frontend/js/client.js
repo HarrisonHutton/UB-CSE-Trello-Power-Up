@@ -6,7 +6,7 @@ window.TrelloPowerUp.initialize({
       return t.popup({
         title: 'Big Brother Settings',
         url: './settings.html',
-        height: 184 // we can always resize later
+        height: 250 // we can always resize later
       });
     }
   });

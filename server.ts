@@ -21,9 +21,6 @@ const server = Bun.serve({
             case '/settings.html':
                 const settingsFile = Bun.file('frontend/html/settings.html');
                 return new Response(settingsFile);
-            case 'settings.css':
-                const settingsCSS = Bun.file('frontend/css/settings.css');
-                return new Response(settingsCSS);
             default:
                 return new Response("Got something else!")
         }

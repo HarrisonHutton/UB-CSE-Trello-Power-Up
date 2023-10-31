@@ -3,11 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.css" />
-    <link rel="stylesheet" href="/settings.css" />
 </head>
-<body>
-    <div>
-        Hello world
-    </div>
+<body class="settings-popup">
+    <form>
+        <label for="text">Server Address</label>
+        <input type="text">
+        <small>This is the UB server that Trello will talk to.</small>
+
+        <label for="text">Semester Password</label>
+        <input type="text" placeholder="hippopotamus">
+        <small>The current semester's password.</small>
+
+        <button class="mod-primary" type="submit">Submit</button>
+    </form>
 </body>
+<style>
+    input {
+        margin-bottom: 0 !important;
+    }
+
+    .settings-popup {
+        padding-inline: 1rem;
+        height: 100vh;
+        overflow: hidden;
+    }
+</style>
 </html>
